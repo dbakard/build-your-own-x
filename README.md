@@ -18,7 +18,7 @@
 ## 6. Build Your Own Neural Network
 - [ ] [**Python:** *Implement a Neural Network from Scratch*](https://victorzhou.com/blog/intro-to-neural-networks/)
 
-## 7. Build Your Own Virtual Machine
+## 7. Build Your Own Emulator / Virtual Machine
 - [ ] [**Rust:** *0dmg: Learning Rust by building a partial Game Boy emulator*](https://jeremybanks.github.io/0dmg/)
 
 ## 8. Build Your Own Shell
