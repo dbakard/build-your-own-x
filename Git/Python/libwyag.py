@@ -96,10 +96,106 @@ def repo_create(path):
 
     return repo
 
+def repo_default_config():
+    ret = configparser.ConfigParser()
+
+    ret.add_section("core")
+    ret.set("core", "repositoryformatversion", "0")
+    ret.set("core", "filemode", "false")
+    ret.set("core", "bare", "false")
+
+    return ret
+
+def repo_find(path=".", required=True):
+    """ Find the root of the current repository"""
+
+    path = os.path.realpath(path)
+
+    if os.path.isdir(os.path.join(path, ".git")):
+        return GitRepository(path)
+
+    # If we haven't returned, recurse in parent, if w
+    parent = os.path.realpath(os.path.join(path, ".."))
+
+    if parent == path:
+        # Bottom case
+        # os.path.join("/", "..") == "/"
+        # If parent == path, then path is root.
+        if required:
+            raise Exception("no git directory.")
+        else:
+            return None
+
+    # Recursive case
+    return repo_find(parent, required)
+
+# Bridge function to call repo_create with the proper argument
+def cmd_init(args):
+    repo_create(args.path)
+
+# Class definition for git objects
+class GitObject (object):
+
+    def __init__(self, data=None):
+        if data != None:
+            self.deserialize(data)
+        else:
+            self.init()
+
+    def serialize(self, repo):
+        raise Exception("Unimplemented!")
+
+    def deserialize(self, data):
+        raise Exception("Unimplemented!")
+
+    def init(self):
+        pass
+
+# Object utility functions
+def object_read(repo, sha):
+    """Read object sha from Git repository repo. Return a
+    Git Object whose exact type depends on the object."""
+
+    path = repo_file(repo, "objects", sha[0:2], sha[2:])
+
+    if not os.path.isfile(path):
+        return None
+
+    with open (path, "rb") as f:
+        raw = zlib.decompress(f.read())
+
+        # Read object type
+        x = raw.find(b' ')
+        fmt = raw[0:x]
+
+        # Read and validate object size
+        y = raw.find(b'\x00', x)
+        size = int(raw[x:y].decode("ascii"))
+        if size != len(raw)-y-1:
+            raise Exception(f"Malformed object {sha}: bad length")
+
+        # Pick constructor
+        match fmt:
+            case b'commit'  : c = GitCommit
+            case b'tree'    : c = GitTree
+            case b'tag'     : c = GitTag
+            case b'blob'    : c = GitBlob
+            case _:
+                raise Exception(f"Unknown type {fmt.decode("ascii")} for object {sha}")
+
+        # Call constructor and return object
+        return c(raw[y+q:])
+
 # Initialize argparsers
 argparser = argparse.ArgumentParser(description="The stupidest content tracker")
 argsubparsers = argparser.add_subparsers(title="Commands", dest="command")
 argsubparsers.required = True
+argsp = argsubparsers.add_parser("init", help="Initialize a new, empty repository.")
+argsp.add_argument("path",
+                   metavar="directory",
+                   nargs="?",
+                   default=".",
+                   help="Where to create the repository.")
 
 def main(argv=sys.argv[1:]):
     args = argparser.parse_args(argv)
