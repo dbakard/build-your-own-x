@@ -7,7 +7,7 @@
 - [ ] [**C:** *Build Your Own Lisp*](http://www.buildyourownlisp.com/)
 
 ## 3. Build Your Own Database
-- [ ] [**C:** *Let's Build a Simple Database*](https://cstack.github.io/db_tutorial/)
+- [ ] [**C++:** *Build Your Own Redis From Scratch*](https://build-your-own.org/redis/)
 
 ## 4. Build Your Own Operating System
 - [ ] [**Rust:** *Writing an OS in Rust*](https://os.phil-opp.com/)
